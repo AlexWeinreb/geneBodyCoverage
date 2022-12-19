@@ -1,0 +1,488 @@
+# Examples and tests
+
+
+This file contains some illustrated examples that help think about the low-level functions.
+
+The reference file was generated with the code:
+```{r}
+#| eval: false
+tx_to_keep <- c("MTCE.3.1", "B0348.5b.1", "C06C3.1b.1", "Y74C9A.6", "F23F1.10.1", "T14G10.2b.1")
+
+raw <- readLines("data/geneBody_coverage/c_elegans.PRJNA13758.WS281.canonical_geneset.genePred.bed") |>
+  stringr::str_match("^[IVXMtDNA]{1,5}\t\\d{1,9}\t\\d{1,9}\t([A-Za-z0-9\\.]+)\t.*")
+writeLines(raw[raw[,2] %in% tx_to_keep, 1],
+           "data/geneBody_coverage/c_elegans.PRJNA13758.WS281_filtered.bed")
+
+```
+
+
+
+```{r}
+source("../R/bin_coords_conversions.R")
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(GenomicRanges))
+
+chrom_list <- as.roman(1:5) |>
+      as.character() |>
+      c("X","MtDNA")
+opt <- list()
+
+bins <- c(0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,
+          1700,1800,1900,2000,2100,2200,2300,2400,2500,2700,2900,3100,3400,3700,
+          4000,4500,5000,5500,6000,6500,7000,8000,9000,10000,Inf)
+
+gene_struct <- read_delim("../tests/testthat/fixtures/c_elegans.PRJNA13758.WS281_filtered.bed",
+                          delim = "\t",
+                        col_names = c("chr","transcript_start","transcript_end","transcript_name","score",
+                                      "strand","thick_start","thick_end","rgb",
+                                      "nb_exons","exons_lengths","exons_starts"),
+                        col_types = cols(
+                          chr = col_factor(chrom_list),        #1
+                          transcript_start = col_integer(),        #2 on the + strand (even if tx on -)
+                          transcript_end = col_integer(),          #3
+                          transcript_name = col_character(),       #4
+                          score = col_factor("0"),                 #5 ignore
+                          strand = col_factor(c("+","-")),         #6
+                          thick_start = col_integer(),             #7 ignore
+                          thick_end = col_integer(),               #8 ignore
+                          rgb = col_factor("0"),                   #9 ignore
+                          nb_exons = col_integer(),                #10
+                          exons_lengths = col_character(),         #11
+                          exons_starts = col_character()           #12 on the + strand (even if tx on -)
+                        )) |>
+  mutate(exons_lengths = strsplit(exons_lengths, ",") |>
+           map(as.integer),
+         exons_starts = strsplit(exons_starts, ",") |>
+           map(as.integer))
+```
+
+## nduo-6: + strand, single exon
+
+
+```
+with # = 9.7 bp      5'                                               3'
+                        #############################################
+                        |                                           |
+    genomic           113                                         549
+    BED ref           112                                         549
+  
+   |bins spliced        0       100       200       300       400   |
+5' |bins unspliced      0       100       200       300       400   |
+   |bins genomic      113       213       313       413       513   |
+  
+   |bins spliced        |   400       300       200       100       0
+3' |bins unspliced      |   400       300       200       100       0
+   |bins genomic        |   149       249       349       449     549
+```
+
+### From 5' end
+
+
+```{r}
+xx <- gene_struct |>
+  filter(transcript_name == "MTCE.3.1") |>
+  mutate(tx_width = map_int(exons_lengths, sum)) |>
+  as.list()
+
+opt$endedness <- 5L
+
+
+bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
+
+bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
+                                                xx$strand,
+                                                xx$exons_lengths[[1]],
+                                                xx$exons_starts[[1]])
+
+bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
+  xx$transcript_end,
+  bins_in_unspliced_coords,
+  xx$strand)
+
+gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
+
+
+bins_in_spliced_coords
+bins_in_unspliced_coords
+bins_in_genomic_coords
+gr
+```
+
+
+### From 3' end
+
+```{r}
+xx <- gene_struct |>
+  filter(transcript_name == "MTCE.3.1") |>
+  mutate(tx_width = map_int(exons_lengths, sum)) |>
+  as.list()
+
+opt$endedness <- 3L
+
+
+bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
+
+bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
+                                                xx$strand,
+                                                xx$exons_lengths[[1]],
+                                                xx$exons_starts[[1]])
+
+bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
+  xx$transcript_end,
+  bins_in_unspliced_coords,
+  xx$strand)
+gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
+
+
+bins_in_spliced_coords
+bins_in_unspliced_coords
+bins_in_genomic_coords
+gr
+```
+
+
+
+
+
+## B0348.5b.1: + strand, 2 exons
+
+```
+with # = 20 bp      5'                                                          3'
+                        #####################   ##############################
+                        |                   |   |                            |
+    genomic         5,536               5,966   6,024                    6,634
+    BED ref         5,535                                                6,634
+                        #####################   ##############################
+                        |   |    |    |    |     |    |    |    |    |    |  
+   |bins spliced        0 100  200  300  400   500  600  700  800  900 1000
+5' |bins unspliced      0 100  200  300  400   557  657  757  857  957 1057
+   |bins genomic     5536   . 5736 5836 5936  6093 6193 6293 6393 6493 6593
+   
+                        #####################   ##############################
+                         |    |    |    |       |    |    |    |    |    |   |
+   |bins spliced      1000  900  800  700     600  500  400  300  200  100   0
+3' |bins unspliced    1057  957  857  757     600  500  400  300  200  100   0
+   |bins genomic      5577 5677 5777 5877    6034    . 6234    . 6434    .6634
+```
+
+
+
+### From 5' end
+
+```{r}
+xx <- gene_struct |>
+  filter(transcript_name == "B0348.5b.1") |>
+  mutate(tx_width = map_int(exons_lengths, sum)) |>
+  as.list()
+
+opt$endedness <- 5L
+
+
+bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
+
+bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
+                                                xx$strand,
+                                                xx$exons_lengths[[1]],
+                                                xx$exons_starts[[1]])
+
+bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
+  xx$transcript_end,
+  bins_in_unspliced_coords,
+  xx$strand)
+gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
+
+
+bins_in_spliced_coords
+bins_in_unspliced_coords
+bins_in_genomic_coords
+gr
+```
+
+### From 3' end
+```{r}
+xx <- gene_struct |>
+  filter(transcript_name == "B0348.5b.1") |>
+  mutate(tx_width = map_int(exons_lengths, sum)) |>
+  as.list()
+
+opt$endedness <- 3L
+
+
+bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
+
+bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
+                                                xx$strand,
+                                                xx$exons_lengths[[1]],
+                                                xx$exons_starts[[1]])
+
+bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
+  xx$transcript_end,
+  bins_in_unspliced_coords,
+  xx$strand)
+gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
+
+bins_in_spliced_coords
+bins_in_unspliced_coords
+bins_in_genomic_coords
+gr
+```
+
+
+
+
+
+## Y74C9A.6: - strand, single exon (note: snoRNA)
+
+
+```
+with # = 3.3bp       3'                                                    5'
+                        #################################################
+                        |                                               |
+    genomic         3,747                                           3,909
+    BED ref         3,746                                           3,909
+                        #################################################
+                                        |                               |
+   |bins spliced                      100                               0
+5' |bins unspliced                    100                               0
+   |bins genomic                    3,809                           3,909
+                        #################################################
+                                                    |
+   |bins spliced        0                         100
+3' |bins unspliced      0                         100
+   |bins genomic     3747                        3847
+```
+
+
+
+
+
+### From 5' end
+
+```{r}
+xx <- gene_struct |>
+  filter(transcript_name == "Y74C9A.6") |>
+  mutate(tx_width = map_int(exons_lengths, sum)) |>
+  as.list()
+
+opt$endedness <- 5L
+
+
+bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
+
+bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
+                                                xx$strand,
+                                                xx$exons_lengths[[1]],
+                                                xx$exons_starts[[1]])
+
+bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
+  xx$transcript_end,
+  bins_in_unspliced_coords,
+  xx$strand)
+gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
+
+
+bins_in_spliced_coords
+bins_in_unspliced_coords
+bins_in_genomic_coords
+gr
+```
+
+### From 3' end
+```{r}
+xx <- gene_struct |>
+  filter(transcript_name == "Y74C9A.6") |>
+  mutate(tx_width = map_int(exons_lengths, sum)) |>
+  as.list()
+
+opt$endedness <- 3L
+
+
+bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
+
+bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
+                                                xx$strand,
+                                                xx$exons_lengths[[1]],
+                                                xx$exons_starts[[1]])
+
+bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
+  xx$transcript_end,
+  bins_in_unspliced_coords,
+  xx$strand)
+gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
+
+bins_in_spliced_coords
+bins_in_unspliced_coords
+bins_in_genomic_coords
+gr
+```
+
+
+
+## F23F1.10.1: - strand, two exons
+
+
+```
+with # = 10bp       3'                                                      5'
+                        #####################                ##############
+                        |                                                 |
+    genomic        41,471                                            41,982
+    BED ref        41,470                                            41,982
+                        #####################                ##############
+                             |         |                         |       |
+   |bins spliced           300       200                       100       0
+5' |bins unspliced         461       361                       100       0
+   |bins genomic        41,521    41,621                    41,882  41,982
+                        #####################                ##############
+                                 |         |                        |     
+   |bins spliced        0      100       200                      300
+3' |bins unspliced      0      100       200                      461
+   |bins genomic   41,471   41,571    41,671                   41,932
+```
+
+
+
+
+
+
+### From 5' end
+
+```{r}
+xx <- gene_struct |>
+  filter(transcript_name == "F23F1.10.1") |>
+  mutate(tx_width = map_int(exons_lengths, sum)) |>
+  as.list()
+
+opt$endedness <- 5L
+
+
+bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
+
+bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
+                                                xx$strand,
+                                                xx$exons_lengths[[1]],
+                                                xx$exons_starts[[1]])
+
+bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
+  xx$transcript_end,
+  bins_in_unspliced_coords,
+  xx$strand)
+gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
+
+
+bins_in_spliced_coords
+bins_in_unspliced_coords
+bins_in_genomic_coords
+gr
+```
+
+
+### From 3' end
+```{r}
+xx <- gene_struct |>
+  filter(transcript_name == "F23F1.10.1") |>
+  mutate(tx_width = map_int(exons_lengths, sum)) |>
+  as.list()
+
+opt$endedness <- 3L
+
+
+bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
+
+bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
+                                                xx$strand,
+                                                xx$exons_lengths[[1]],
+                                                xx$exons_starts[[1]])
+
+bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
+  xx$transcript_end,
+  bins_in_unspliced_coords,
+  xx$strand)
+gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
+
+bins_in_spliced_coords
+bins_in_unspliced_coords
+bins_in_genomic_coords
+gr
+```
+
+
+
+
+## mel-11: + strand, many exons
+
+
+```{r}
+xx <- gene_struct |>
+  filter(transcript_name == "C06C3.1b.1") |>
+  mutate(tx_width = map_int(exons_lengths, sum)) |>
+  as.list()
+
+opt$endedness <- 3L
+
+
+bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
+
+bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
+                                                xx$strand,
+                                                xx$exons_lengths[[1]],
+                                                xx$exons_starts[[1]])
+
+bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
+  xx$transcript_end,
+  bins_in_unspliced_coords,
+  xx$strand)
+gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
+
+bins_in_spliced_coords
+bins_in_unspliced_coords
+bins_in_genomic_coords
+
+```
+
+
+
+
+## pxf-1: - strand, many exons
+
+
+
+
+```{r}
+xx <- gene_struct |>
+  filter(transcript_name == "T14G10.2b.1") |>
+  mutate(tx_width = map_int(exons_lengths, sum)) |>
+  as.list()
+
+opt$endedness <- 3L
+
+
+bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
+
+bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
+                                                xx$strand,
+                                                xx$exons_lengths[[1]],
+                                                xx$exons_starts[[1]])
+
+bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
+  xx$transcript_end,
+  bins_in_unspliced_coords,
+  xx$strand)
+gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
+
+bins_in_spliced_coords
+bins_in_unspliced_coords
+bins_in_genomic_coords
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
