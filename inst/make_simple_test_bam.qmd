@@ -1,0 +1,136 @@
+
+```{r}
+library(tibble)
+```
+
+Create a BAM file with manually written reads, so we know the expected result for testing.
+
+```{r}
+sq <- function(n){
+  sample(c("A","C","T","G"), size = n, replace = TRUE) |>
+    paste0(collapse = "")
+}
+qu <- function(n){
+  sample(LETTERS, size = n, replace = TRUE) |>
+    paste0(collapse = "")
+}
+
+write_sam <- function(reads, filename = "test.sam"){
+  max_LN <- max(reads$pos + reads$tlen)
+  header <- "@HD\tVN:1.4\tSO:coordinate"
+  for(chrom in unique(reads$rname)){
+    header <- c(header, paste0("@SQ\tSN:",chrom,"\tLN:",max_LN))
+  }
+  
+  writeLines(header, filename, sep = "\n")
+  readr::write_delim(reads, delim = '\t',
+              col_names = FALSE, append = TRUE,
+              file = filename, eol = "\n")
+}
+
+```
+
+
+## nduo-6: + strand, single exon
+
+
+```{text}
+with # = 9.7 bp      5'                                               3'
+                        #############################################
+                        |                                           |
+genomic               113                                         549
+BED ref               112                                         549
+
+   |bins spliced        0       100       200       300       400   |
+5' |bins unspliced      0       100       200       300       400   |
+   |bins genomic      113       213       313       413       513   |
+
+   |bins spliced        |   400       300       200       100       0
+3' |bins unspliced      |   400       300       200       100       0
+   |bins genomic        |   149       249       349       449     549
+                        #############################################
+                        |     |   ^     |   ^     |   ^     |   ^   |
+    genomic           113                                         549
+    reads                  >>>>>>>>>>                     <<<<<<<<<
+                               >>>>........>>>>>>>      <<<<<<<<<   
+                        #############################################
+                        |     |   ^     |   ^     |   ^     |   ^   |
+```
+
+```{r}
+reads1 <- tribble(~qname, ~flag, ~rname, ~pos, ~mapq, ~cigar, ~rnext, ~pnext, ~tlen,  ~seq, ~qual,
+                 "read1",  99, "MtDNA",  123,   255,"100M",    "=",    432,   100,sq(100),qu(100),
+                 "mate1", 147, "MtDNA",  432,   255, "90M",    "=",    100,    90, sq(90), qu(90),
+                 "read2",  99, "MtDNA",  160,   255,"40M80N70M","=",   420,   110,sq(110),qu(110),
+                 "mate2", 147, "MtDNA",  420,   255, "90M",    "=",    160,    90, sq(90), qu(90))
+
+```
+
+Hence the expected result:
+```{text}
+                        #############################################
+                        |     |   ^     |   ^     |   ^     |   ^   |
+    genomic           113                                         549
+    reads                  >>>>>>>>>>                     <<<<<<<<<
+                               >>>>........>>>>>>>      <<<<<<<<<   
+    5' counts           |    2    |    1    |    1    |    2    |   
+    3' counts                 |    2    |    1    |    2    |   2   |
+                        #############################################
+                        |     |   ^     |   ^     |   ^     |   ^   |
+                          
+```
+
+
+
+
+## B0348.5b.1: + strand, 2 exons
+
+```{text}
+with # = 20 bp      5'                                                          3'
+                        #####################   ##############################
+                        |                   |   |                            |
+    genomic         5,536               5,966   6,024                    6,634
+    BED ref         5,535                                                6,634
+                        #####################   ##############################
+                        |   |    |    |    |     |    |    |    |    |    |  
+   |bins spliced        0 100  200  300  400   500  600  700  800  900 1000
+5' |bins unspliced      0 100  200  300  400   557  657  757  857  957 1057
+   |bins genomic     5536   . 5736 5836 5936  6093 6193 6293 6393 6493 6593
+   
+                        #####################   ##############################
+                         |    |    |    |       |    |    |    |    |    |   |
+   |bins spliced      1000  900  800  700     600  500  400  300  200  100   0
+3' |bins unspliced    1057  957  857  757     600  500  400  300  200  100   0
+   |bins genomic      5577 5677 5777 5877    6034    . 6234    . 6434    .6634
+                        #####################   ##############################
+                        l|  ^ |  ^ |  ^ |  ^l   |^   |^   |^   |^   |^   |^  l
+    genomic         5,536               5,966   6,024                    6,634
+    reads                    >>>>                           <<<
+                                   >>>>>>>>>>___>>>>>       <<<<<<
+                        l   ^ |  ^ |  ^ |  ^l   |^   |^   |^   |^   |^   |^  l
+    5' counts           | 0 | 1  |  1 |  1 |  1  |  1 |  0 | 2  |  1 | 0  |
+    3' counts            |  1 |  2 |  1 |   1   |  1 |  0 | 2  |  1 |  0 | 0 |
+```
+
+
+```{r}
+reads2 <- tribble(~qname, ~flag, ~rname, ~pos, ~mapq, ~cigar, ~rnext, ~pnext, ~tlen,  ~seq, ~qual,
+                  "read1",  99,     "V", 5640,   255, "80M",    "=",   6300,   80, sq(80), qu(80),
+                  "mate1", 147,     "V", 6300,   255, "60M",    "=",   5640,   60, sq(60), qu(60),
+                  "read2",  99,     "V", 5766,   255,"200M58N100M","=",6300,  300,sq(300),qu(300),
+                  "mate2", 147,     "V", 6300,   255, "120M",    "=",  5766,  120,sq(120), qu(120))
+```
+
+
+
+
+```{r}
+#| eval: false
+write_sam(rbind(reads1, reads2),
+          filename = "../tests/testthat/fixtures/simple.sam")
+
+Rsamtools::asBam("../tests/testthat/fixtures/simple.sam", overwrite = TRUE)
+
+```
+
+
