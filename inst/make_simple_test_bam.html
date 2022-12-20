@@ -108,32 +108,32 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <p>Create a BAM file with manually written reads, so we know the expected result for testing.</p>
+<p>Let’s start with some initializations:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>sq <span class="ot">&lt;-</span> <span class="cf">function</span>(n){</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"A"</span>,<span class="st">"C"</span>,<span class="st">"T"</span>,<span class="st">"G"</span>), <span class="at">size =</span> n, <span class="at">replace =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="at">collapse =</span> <span class="st">""</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>qu <span class="ot">&lt;-</span> <span class="cf">function</span>(n){</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sample</span>(LETTERS, <span class="at">size =</span> n, <span class="at">replace =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="at">collapse =</span> <span class="st">""</span>)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>write_sam <span class="ot">&lt;-</span> <span class="cf">function</span>(reads, <span class="at">filename =</span> <span class="st">"test.sam"</span>){</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  max_LN <span class="ot">&lt;-</span> <span class="fu">max</span>(reads<span class="sc">$</span>pos <span class="sc">+</span> reads<span class="sc">$</span>tlen)</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  header <span class="ot">&lt;-</span> <span class="st">"@HD</span><span class="sc">\t</span><span class="st">VN:1.4</span><span class="sc">\t</span><span class="st">SO:coordinate"</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(chrom <span class="cf">in</span> <span class="fu">unique</span>(reads<span class="sc">$</span>rname)){</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    header <span class="ot">&lt;-</span> <span class="fu">c</span>(header, <span class="fu">paste0</span>(<span class="st">"@SQ</span><span class="sc">\t</span><span class="st">SN:"</span>,chrom,<span class="st">"</span><span class="sc">\t</span><span class="st">LN:"</span>,max_LN))</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">writeLines</span>(header, filename, <span class="at">sep =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  readr<span class="sc">::</span><span class="fu">write_delim</span>(reads, <span class="at">delim =</span> <span class="st">'</span><span class="sc">\t</span><span class="st">'</span>,</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>              <span class="at">col_names =</span> <span class="cn">FALSE</span>, <span class="at">append =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>              <span class="at">file =</span> filename, <span class="at">eol =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>sq <span class="ot">&lt;-</span> <span class="cf">function</span>(n){</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"A"</span>,<span class="st">"C"</span>,<span class="st">"T"</span>,<span class="st">"G"</span>), <span class="at">size =</span> n, <span class="at">replace =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="at">collapse =</span> <span class="st">""</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>qu <span class="ot">&lt;-</span> <span class="cf">function</span>(n){</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sample</span>(LETTERS, <span class="at">size =</span> n, <span class="at">replace =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="at">collapse =</span> <span class="st">""</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>write_sam <span class="ot">&lt;-</span> <span class="cf">function</span>(reads, <span class="at">filename =</span> <span class="st">"test.sam"</span>){</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  max_LN <span class="ot">&lt;-</span> <span class="fu">max</span>(reads<span class="sc">$</span>pos <span class="sc">+</span> reads<span class="sc">$</span>tlen)<span class="sc">*</span><span class="dv">2</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  header <span class="ot">&lt;-</span> <span class="st">"@HD</span><span class="sc">\t</span><span class="st">VN:1.4</span><span class="sc">\t</span><span class="st">SO:coordinate"</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(chrom <span class="cf">in</span> <span class="fu">unique</span>(reads<span class="sc">$</span>rname)){</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    header <span class="ot">&lt;-</span> <span class="fu">c</span>(header, <span class="fu">paste0</span>(<span class="st">"@SQ</span><span class="sc">\t</span><span class="st">SN:"</span>,chrom,<span class="st">"</span><span class="sc">\t</span><span class="st">LN:"</span>,max_LN))</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">writeLines</span>(header, filename, <span class="at">sep =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  readr<span class="sc">::</span><span class="fu">write_delim</span>(reads, <span class="at">delim =</span> <span class="st">'</span><span class="sc">\t</span><span class="st">'</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>              <span class="at">col_names =</span> <span class="cn">FALSE</span>, <span class="at">append =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>              <span class="at">file =</span> filename, <span class="at">eol =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="nduo-6-strand-single-exon" class="level2">
 <h2 class="anchored" data-anchor-id="nduo-6-strand-single-exon">nduo-6: + strand, single exon</h2>
@@ -154,33 +154,70 @@ BED ref               112                                         549
                         #############################################
                         |     |   ^     |   ^     |   ^     |   ^   |
     genomic           113                                         549
-    reads                  &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;                     &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
-                               &gt;&gt;&gt;&gt;........&gt;&gt;&gt;&gt;&gt;&gt;&gt;      &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;   
+    reads                  &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;                    
+                               &gt;&gt;&gt;&gt;...........&gt;&gt;&gt;&gt;      
                         #############################################
                         |     |   ^     |   ^     |   ^     |   ^   |</code></pre>
 </div>
+<p>Note, looking at actual 10x data, the flags are <code>0</code>, <code>4</code>, <code>16</code>, <code>1024</code>, and <code>1040</code>.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>tag</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>-</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>unmapped</td>
+</tr>
+<tr class="odd">
+<td>16</td>
+<td>reverse strand</td>
+</tr>
+<tr class="even">
+<td>1024</td>
+<td>duplicate</td>
+</tr>
+<tr class="odd">
+<td>1040</td>
+<td>duplicate on reverse strand</td>
+</tr>
+</tbody>
+</table>
+<p>Note also that they all have <code>TLEN</code> of <code>0</code>, but here we keep the actual length. But we use the same <code>RNEXT</code> and <code>PNEXT</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>reads1 <span class="ot">&lt;-</span> <span class="fu">tribble</span>(<span class="sc">~</span>qname, <span class="sc">~</span>flag, <span class="sc">~</span>rname, <span class="sc">~</span>pos, <span class="sc">~</span>mapq, <span class="sc">~</span>cigar, <span class="sc">~</span>rnext, <span class="sc">~</span>pnext, <span class="sc">~</span>tlen,  <span class="sc">~</span>seq, <span class="sc">~</span>qual,</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"read1"</span>,  <span class="dv">99</span>, <span class="st">"MtDNA"</span>,  <span class="dv">123</span>,   <span class="dv">255</span>,<span class="st">"100M"</span>,    <span class="st">"="</span>,    <span class="dv">432</span>,   <span class="dv">100</span>,<span class="fu">sq</span>(<span class="dv">100</span>),<span class="fu">qu</span>(<span class="dv">100</span>),</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"mate1"</span>, <span class="dv">147</span>, <span class="st">"MtDNA"</span>,  <span class="dv">432</span>,   <span class="dv">255</span>, <span class="st">"90M"</span>,    <span class="st">"="</span>,    <span class="dv">100</span>,    <span class="dv">90</span>, <span class="fu">sq</span>(<span class="dv">90</span>), <span class="fu">qu</span>(<span class="dv">90</span>),</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"read2"</span>,  <span class="dv">99</span>, <span class="st">"MtDNA"</span>,  <span class="dv">160</span>,   <span class="dv">255</span>,<span class="st">"40M80N70M"</span>,<span class="st">"="</span>,   <span class="dv">420</span>,   <span class="dv">110</span>,<span class="fu">sq</span>(<span class="dv">110</span>),<span class="fu">qu</span>(<span class="dv">110</span>),</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"mate2"</span>, <span class="dv">147</span>, <span class="st">"MtDNA"</span>,  <span class="dv">420</span>,   <span class="dv">255</span>, <span class="st">"90M"</span>,    <span class="st">"="</span>,    <span class="dv">160</span>,    <span class="dv">90</span>, <span class="fu">sq</span>(<span class="dv">90</span>), <span class="fu">qu</span>(<span class="dv">90</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>reads1 <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>qname, <span class="sc">~</span>flag, <span class="sc">~</span>rname, <span class="sc">~</span>pos, <span class="sc">~</span>mapq,  <span class="sc">~</span>cigar, <span class="sc">~</span>rnext, <span class="sc">~</span>pnext, <span class="sc">~</span>tlen,    <span class="sc">~</span>seq, <span class="sc">~</span>qual,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mt_1"</span>,    <span class="dv">0</span>, <span class="st">"MtDNA"</span>, <span class="dv">123</span>,   <span class="dv">255</span>,  <span class="st">"100M"</span>,    <span class="st">"*"</span>,      <span class="dv">0</span>,   <span class="dv">100</span>, <span class="fu">sq</span>(<span class="dv">100</span>),<span class="fu">qu</span>(<span class="dv">100</span>),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"mt_2"</span>,    <span class="dv">0</span>, <span class="st">"MtDNA"</span>, <span class="dv">160</span>,   <span class="dv">255</span>,<span class="st">"40M130N70M"</span>,<span class="st">"*"</span>,      <span class="dv">0</span>,   <span class="dv">110</span>, <span class="fu">sq</span>(<span class="dv">110</span>),<span class="fu">qu</span>(<span class="dv">110</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Hence the expected result:</p>
-<pre><code>                        #############################################
-                        |     |   ^     |   ^     |   ^     |   ^   |
-    genomic           113                                         549
-    reads                  &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;                     &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
-                               &gt;&gt;&gt;&gt;........&gt;&gt;&gt;&gt;&gt;&gt;&gt;      &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;   
-    5' counts           |    2    |    1    |    1    |    2    |   
-    3' counts                 |    2    |    1    |    2    |   2   |
+<div class="cell">
+<pre class="text cell-code"><code>                      5'                                               3'
                         #############################################
                         |     |   ^     |   ^     |   ^     |   ^   |
+    genomic           113                                         549
+    reads                  &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;                   
+                               &gt;&gt;&gt;&gt;...........&gt;&gt;&gt;&gt;&gt;&gt;   
+    5' counts           |    2    |    1    |    1    |    0    |   
+    3' counts                 |    2    |    1    |    1    |   0   |
+                        #############################################
+                        |     |   ^     |   ^     |   ^     |   ^   |
+                      113   149 213   249 313   349 413   449 513 549
                           </code></pre>
+</div>
 </section>
 <section id="b0348.5b.1-strand-2-exons" class="level2">
 <h2 class="anchored" data-anchor-id="b0348.5b.1-strand-2-exons">B0348.5b.1: + strand, 2 exons</h2>
-<pre><code>with # = 20 bp      5'                                                          3'
+<div class="cell">
+<pre class="text cell-code"><code>with # = 20 bp      5'                                                          3'
                         #####################   ##############################
                         |                   |   |                            |
     genomic         5,536               5,966   6,024                    6,634
@@ -197,23 +234,96 @@ BED ref               112                                         549
 3' |bins unspliced    1057  957  857  757     600  500  400  300  200  100   0
    |bins genomic      5577 5677 5777 5877    6034    . 6234    . 6434    .6634
                         #####################   ##############################
-                        l   ^ |  ^ |  ^ |  ^l   |^   |^   |^   |^   |^   |^  l
+                        l|  ^ |  ^ |  ^ |  ^l   |^   |^   |^   |^   |^   |^  l
     genomic         5,536               5,966   6,024                    6,634
-    reads                    &gt;&gt;&gt;&gt;                           &lt;&lt;&lt;
-                                   &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;___&gt;&gt;&gt;&gt;&gt;       &lt;&lt;&lt;&lt;&lt;&lt;
-                        l   ^ |  ^ |  ^ |  ^l   |^   |^   |^   |^   |^   |^  l</code></pre>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>reads2 <span class="ot">&lt;-</span> <span class="fu">tribble</span>(<span class="sc">~</span>qname, <span class="sc">~</span>flag, <span class="sc">~</span>rname, <span class="sc">~</span>pos, <span class="sc">~</span>mapq, <span class="sc">~</span>cigar, <span class="sc">~</span>rnext, <span class="sc">~</span>pnext, <span class="sc">~</span>tlen,  <span class="sc">~</span>seq, <span class="sc">~</span>qual,</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>                  <span class="st">"read1"</span>,  <span class="dv">99</span>, <span class="st">"MtDNA"</span>, <span class="dv">5640</span>,   <span class="dv">255</span>, <span class="st">"80M"</span>,    <span class="st">"="</span>,   <span class="dv">6300</span>,   <span class="dv">80</span>, <span class="fu">sq</span>(<span class="dv">80</span>), <span class="fu">qu</span>(<span class="dv">80</span>),</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>                  <span class="st">"mate1"</span>, <span class="dv">147</span>, <span class="st">"MtDNA"</span>, <span class="dv">6300</span>,   <span class="dv">255</span>, <span class="st">"60M"</span>,    <span class="st">"="</span>,   <span class="dv">5640</span>,   <span class="dv">60</span>, <span class="fu">sq</span>(<span class="dv">60</span>), <span class="fu">qu</span>(<span class="dv">60</span>),</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                  <span class="st">"read2"</span>,  <span class="dv">99</span>, <span class="st">"MtDNA"</span>, <span class="dv">5766</span>,   <span class="dv">255</span>,<span class="st">"200M58N100M"</span>,<span class="st">"="</span>,<span class="dv">6300</span>,  <span class="dv">300</span>,<span class="fu">sq</span>(<span class="dv">300</span>),<span class="fu">qu</span>(<span class="dv">300</span>),</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                  <span class="st">"mate2"</span>, <span class="dv">147</span>, <span class="st">"MtDNA"</span>, <span class="dv">6300</span>,   <span class="dv">255</span>, <span class="st">"120M"</span>,    <span class="st">"="</span>,  <span class="dv">5766</span>,  <span class="dv">120</span>,<span class="fu">sq</span>(<span class="dv">120</span>), <span class="fu">qu</span>(<span class="dv">120</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+    reads                    &gt;&gt;&gt;&gt;                           
+                                   &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;...&gt;&gt;&gt;&gt;&gt;       
+                        l   ^ |  ^ |  ^ |  ^l   |^   |^   |^   |^   |^   |^  l
+    5' counts           | 0 | 1  |  1 |  1 |  1  |  1 |  0 | 0  |  0 | 0  |
+    3' counts            |  1 |  2 |  1 |   1   |  1 |  0 | 0  |  0 |  0 | 0 |</code></pre>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_sam</span>(<span class="fu">rbind</span>(reads1, reads2),</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">filename =</span> <span class="st">"../tests/testthat/fixtures/simple.sam"</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>Rsamtools<span class="sc">::</span><span class="fu">asBam</span>(<span class="st">"../tests/testthat/fixtures/simple.sam"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>reads2 <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>qname, <span class="sc">~</span>flag, <span class="sc">~</span>rname, <span class="sc">~</span>pos, <span class="sc">~</span>mapq,   <span class="sc">~</span>cigar, <span class="sc">~</span>rnext, <span class="sc">~</span>pnext, <span class="sc">~</span>tlen,  <span class="sc">~</span>seq, <span class="sc">~</span>qual,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"b0_1"</span>,     <span class="dv">0</span>,    <span class="st">"V"</span>, <span class="dv">5640</span>,   <span class="dv">255</span>,   <span class="st">"80M"</span>,     <span class="st">"*"</span>,      <span class="dv">0</span>,   <span class="dv">80</span>, <span class="fu">sq</span>(<span class="dv">80</span>), <span class="fu">qu</span>(<span class="dv">80</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"b0_2"</span>,     <span class="dv">0</span>,    <span class="st">"V"</span>, <span class="dv">5766</span>,  <span class="dv">255</span>,<span class="st">"200M58N100M"</span>, <span class="st">"*"</span>,      <span class="dv">0</span>,  <span class="dv">300</span>,<span class="fu">sq</span>(<span class="dv">300</span>),<span class="fu">qu</span>(<span class="dv">300</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="y74c9a.6---strand-single-exon-note-snorna" class="level2">
+<h2 class="anchored" data-anchor-id="y74c9a.6---strand-single-exon-note-snorna">Y74C9A.6: - strand, single exon (note: snoRNA)</h2>
+<div class="cell">
+<pre class="text cell-code"><code>with # = 3.3bp       3'                                                    5'
+                        #################################################
+                        |                                               |
+    genomic         3,747                                           3,909
+    BED ref         3,746                                           3,909
+                        #################################################
+                                        |                               |
+   |bins spliced                      100                               0
+5' |bins unspliced                    100                               0
+   |bins genomic                    3,809                           3,909
+                        #################################################
+                                                    |
+   |bins spliced        0                         100
+3' |bins unspliced      0                         100
+   |bins genomic     3747                        3847
+                        l               ^           |                   l
+    reads                  &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;      &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+                                &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+    5' counts                           |                2               |
+    3' counts           |             3             |
+   </code></pre>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>reads3 <span class="ot">&lt;-</span> <span class="fu">tribble</span>(<span class="sc">~</span>qname, <span class="sc">~</span>flag, <span class="sc">~</span>rname, <span class="sc">~</span>pos, <span class="sc">~</span>mapq, <span class="sc">~</span>cigar, <span class="sc">~</span>rnext, <span class="sc">~</span>pnext, <span class="sc">~</span>tlen,  <span class="sc">~</span>seq, <span class="sc">~</span>qual,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                  <span class="st">"y74_1"</span>,   <span class="dv">16</span>,     <span class="st">"I"</span>, <span class="dv">3751</span>,   <span class="dv">255</span>, <span class="st">"33M"</span>,    <span class="st">"*"</span>,   <span class="dv">0</span>,   <span class="dv">33</span>, <span class="fu">sq</span>(<span class="dv">33</span>), <span class="fu">qu</span>(<span class="dv">33</span>),</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                  <span class="st">"y74_2"</span>,   <span class="dv">16</span>,     <span class="st">"I"</span>, <span class="dv">3798</span>,   <span class="dv">255</span>, <span class="st">"46M"</span>,     <span class="st">"*"</span>,  <span class="dv">0</span>,   <span class="dv">46</span>, <span class="fu">sq</span>(<span class="dv">46</span>), <span class="fu">qu</span>(<span class="dv">46</span>),</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                  <span class="st">"y74_3"</span>,   <span class="dv">16</span>,     <span class="st">"I"</span>, <span class="dv">3810</span>,   <span class="dv">255</span>, <span class="st">"26M"</span>,     <span class="st">"*"</span>,  <span class="dv">0</span>,   <span class="dv">26</span>, <span class="fu">sq</span>(<span class="dv">26</span>), <span class="fu">qu</span>(<span class="dv">26</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="f23f1.10.1---strand-two-exons" class="level2">
+<h2 class="anchored" data-anchor-id="f23f1.10.1---strand-two-exons">F23F1.10.1: - strand, two exons</h2>
+<div class="cell">
+<pre class="text cell-code"><code>with # = 10bp       3'                                                      5'
+                        #####################                ##############
+                        |                   |                |            |
+    genomic        41,471              41,682            41844       41,982
+    BED ref        41,470                                            41,982
+                        #####################                ##############
+                            |         |                        |         |
+   |bins spliced          300       200                      100         0
+5' |bins unspliced        461       361                      100         0
+   |bins genomic       41,521    41,621                   41,882    41,982
+                        #####################                ##############
+                                  |         |                         |     
+   |bins spliced        0       100       200                       300
+3' |bins unspliced      0       100       200                       461
+   |bins genomic   41,471    41,571    41,671                    41,932
+   
+   reads                                 &lt;&lt;&lt;&lt;................&lt;&lt;&lt;&lt;&lt;
+                                        &lt;&lt;&lt;
+                        #####################                ##############
+                        |   ^     |   ^     |                  ^      |   ^
+   5' counts                |    0    |         2              |    1     |
+   3' counts            |    0    |    2    |          1              |</code></pre>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>reads4 <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>qname, <span class="sc">~</span>flag, <span class="sc">~</span>rname,  <span class="sc">~</span>pos, <span class="sc">~</span>mapq,       <span class="sc">~</span>cigar, <span class="sc">~</span>rnext, <span class="sc">~</span>pnext, <span class="sc">~</span>tlen,  <span class="sc">~</span>seq, <span class="sc">~</span>qual,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"f23_1"</span>,   <span class="dv">16</span>,   <span class="st">"II"</span>, <span class="dv">41661</span>,   <span class="dv">255</span>, <span class="st">"21M161N50M"</span>,    <span class="st">"*"</span>,      <span class="dv">0</span>,   <span class="dv">71</span>, <span class="fu">sq</span>(<span class="dv">71</span>), <span class="fu">qu</span>(<span class="dv">71</span>),</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"f23_2"</span>,   <span class="dv">16</span>,   <span class="st">"II"</span>, <span class="dv">41632</span>,   <span class="dv">255</span>,        <span class="st">"30M"</span>,    <span class="st">"*"</span>,      <span class="dv">0</span>,   <span class="dv">30</span>, <span class="fu">sq</span>(<span class="dv">30</span>), <span class="fu">qu</span>(<span class="dv">30</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="end" class="level2">
+<h2 class="anchored" data-anchor-id="end">End</h2>
+<p>Now save this test file as a BAM.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_sam</span>(<span class="fu">rbind</span>(reads1, reads2, reads3, reads4),</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">filename =</span> <span class="st">"../tests/testthat/fixtures/simple.sam"</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>Rsamtools<span class="sc">::</span><span class="fu">asBam</span>(<span class="st">"../tests/testthat/fixtures/simple.sam"</span>, <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 

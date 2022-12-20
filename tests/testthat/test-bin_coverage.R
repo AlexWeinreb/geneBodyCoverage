@@ -1,6 +1,5 @@
 
-devtools::load_all()
-library(testthat)
+# Initializations ----
 
 bam_content <- GenomicAlignments::readGAlignments(file = test_path("fixtures", "simple.bam"),
                                                   index = test_path("fixtures", "simple.bam"))
@@ -44,9 +43,6 @@ prepare_transcript <- function(tx_name, endedness){
     dplyr::mutate(tx_width = purrr::map_int(exons_lengths, sum)) |>
     as.list()
 
-  cat(length(xx$transcript_name),"\n")
-
-
   bins_in_spliced_coords <- purrr::map(xx$tx_width,
                                        ~bins[bins <= .x])[[1]]
 
@@ -69,26 +65,63 @@ prepare_transcript <- function(tx_name, endedness){
                                xx$exons_starts[[1]],
                                xx$exons_lengths[[1]],
                                opt)
-  list(bins_in_spliced_coords = bins_in_spliced_coords,
-       bins_in_unspliced_coords = bins_in_unspliced_coords,
-       bins_in_genomic_coords = bins_in_genomic_coords,
-       bins_gr = bins_gr)
+  bins_gr
 }
 
+# Tests ----
 
 
-res <- prepare_transcript(tx_name = "MTCE.3.1",endedness =  5L)
+#~ MTCE.3.1 ----
 
-bins_coverage(res$bins_gr, "MtDNA", "+", bam_content)
+bins_coverage(prepare_transcript(tx_name = "MTCE.3.1",endedness =  5L),
+              "MtDNA", "+", bam_content) |>
+  expect_identical(c(2L,1L,1L,0L))
 
-
-
-bam_subset <- bam_content[GenomeInfoDb::seqnames(bam_content) == as.character("MtDNA") &
-                            BiocGenerics::strand(bam_content) == as.character("+")]
-
-countUniqueOverlappers(res[[1]],
-                       bam_subset)
+bins_coverage(prepare_transcript(tx_name = "MTCE.3.1",endedness =  3L),
+              "MtDNA", "+", bam_content) |>
+  expect_identical(c(0L,1L,1L,2L))
 
 
+
+
+#~ B0348.5b.1 ----
+
+bins_coverage(prepare_transcript(tx_name = "B0348.5b.1",endedness =  5L),
+              "V", "+",
+              bam_content) |>
+  expect_identical(c(0L, 1L, 1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L))
+
+bins_coverage(prepare_transcript(tx_name = "B0348.5b.1",endedness =  3L),
+              "V", "+",
+              bam_content) |>
+  expect_identical(c(0L,0L,0L,0L,0L,1L,1L,1L,2L,1L))
+
+
+
+#~ Y74C9A.6 ----
+
+bins_coverage(prepare_transcript(tx_name = "Y74C9A.6",endedness =  5L),
+              "I", "-",
+              bam_content) |>
+  expect_identical(c(2L))
+
+bins_coverage(prepare_transcript(tx_name = "Y74C9A.6",endedness =  3L),
+              "I", "-",
+              bam_content) |>
+  expect_identical(c(3L))
+
+
+
+#~ F23F1.10.1 ----
+
+bins_coverage(prepare_transcript(tx_name = "F23F1.10.1",endedness =  5L),
+              "II", "-",
+              bam_content) |>
+  expect_identical(c(1L, 2L, 0L))
+
+bins_coverage(prepare_transcript(tx_name = "F23F1.10.1",endedness =  3L),
+              "II", "-",
+              bam_content) |>
+  expect_identical(c(0L, 2L, 1L))
 
 
