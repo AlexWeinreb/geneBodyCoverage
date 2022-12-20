@@ -1,4 +1,8 @@
-
+---
+format:
+  html:
+    embed-resources: true
+---
 
 Create a BAM file with manually written reads, so we know the expected result for testing.
 
