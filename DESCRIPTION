@@ -1,16 +1,28 @@
 Package: geneBodyCoverage
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Compute transcript coverage from RNA-Seq data
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Alexis Weinreb
+Maintainer: Alexis Weinreb <alexis.weinreb@yale.edu>
+Description: Given gene annotations and RNA-Seq BAM files, compute
+    the number of reads that fall at any given position in each transcript.
+    This allows to detect 3' bias or 5'bias, and determine whether the coverage is
+    uniform.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Suggests: 
+    dplyr,
+    GenomeInfoDb,
+    readr,
+    Rsamtools,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 URL: https://github.com/AlexWeinreb/geneBodyCoverage
 BugReports: https://github.com/AlexWeinreb/geneBodyCoverage/issues
+Imports: 
+    GenomicRanges,
+    IRanges,
+    methods,
+    purrr
+RoxygenNote: 7.2.2

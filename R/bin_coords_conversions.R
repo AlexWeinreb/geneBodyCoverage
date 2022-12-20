@@ -1,10 +1,27 @@
-last_element <- function(x) x[length(x)]
+#' Select last element of vector
+#'
+#' @param x Vector
+#'
+#' @return The last element of `x`
+last_element <- function(x){
+  x[length(x)]
+}
 
 
-coords_to_unspliced <- function(coords_in_spliced, strand, exons_lengths, exons_starts){
+#' Convert coordinates from spliced to unspliced
+#'
+#' @param coords_in_spliced Bins positions in spliced coordinates (where introns count 0 bp)
+#' @param tx_strand Genomic strand of this transcript
+#' @param exons_lengths,exons_starts Exons lengths and starts
+#' @param opt List containing endedness (do we count from 3' or from 5')
+#'
+#' @return Bins positions in unspliced coordinates (i.e. the transcript starts at 0, but we add space for the introns)
+#'
+coords_to_unspliced <- function(coords_in_spliced, tx_strand, exons_lengths,
+                                exons_starts, opt){
 
-  if((strand == "+" && opt$endedness == 3L) |
-     (strand == "-" && opt$endedness == 5L)){
+  if((tx_strand == "+" && opt$endedness == 3L) |
+     (tx_strand == "-" && opt$endedness == 5L)){
     # count from right to left (where BED is left to right)
     tx_end <- last_element(exons_lengths) + last_element(exons_starts)
     exons_starts <- tx_end - rev(exons_lengths + exons_starts)
@@ -12,7 +29,7 @@ coords_to_unspliced <- function(coords_in_spliced, strand, exons_lengths, exons_
   }
 
   cumlength <- cumsum(exons_lengths)
-  which_exon <- map_int(coords_in_spliced,
+  which_exon <- purrr::map_int(coords_in_spliced,
                         ~ min(which(.x <= cumlength)))
 
   exons_starts[which_exon] -
@@ -21,42 +38,62 @@ coords_to_unspliced <- function(coords_in_spliced, strand, exons_lengths, exons_
 }
 
 
-coords_to_genomic <- function(.tx_st, .tx_end, .bins, .strand){
-  `if`((.strand == "+" && opt$endedness == 5L) |
-         (.strand == "-" && opt$endedness == 3L),
-       .tx_st + .bins + 1,
-       .tx_end - .bins)
+#' Convert unspliced to genomic coordinates
+#'
+#' @param tx_st Genomic position of transcript start
+#' @param tx_end Genomic position of transcript end
+#' @param bins Bins positions in unspliced coordinates
+#' @param tx_strand Genomic strand of transcript
+#' @param opt List containing endedness (do we count from 3' or from 5')
+#'
+#' @return Bins positions in genomic coordinates
+coords_to_genomic <- function(tx_st, tx_end, bins, tx_strand, opt){
+  `if`((tx_strand == "+" && opt$endedness == 5L) |
+         (tx_strand == "-" && opt$endedness == 3L),
+       tx_st + bins + 1,
+       tx_end - bins)
 }
 
 
-coords_as_granges <- function(tx_chr, tx_bins, tx_strand,
-                              tx_start, tx_ex_starts, tx_ex_len){
+#' Coordinates to GRanges
+#'
+#' @param tx_chr,tx_strand,tx_start Transcript genomic position
+#' @param bins Bins positions in genomic coordinates
+#' @param tx_ex_starts,tx_ex_len Starts and lengths of the exons
+#' @param opt List containing endedness (do we count from 3' or from 5')
+#'
+#' @return A list of GRranges objects, each element of the list is one bin, There might be several Ranges within a single element if that bins spans several exons (making holes for introns)
+#'
+#' @importFrom methods as
+coords_as_granges <- function(tx_chr, bins, tx_strand,
+                              tx_start, tx_ex_starts, tx_ex_len,
+                              opt){
 
   if((tx_strand == "+" && opt$endedness == 5L) |
      (tx_strand == "-" && opt$endedness == 3L)){
     # left to right
-    tx_gr <- GRanges(seqnames = tx_chr,
-                     ranges = IRanges(start = tx_bins[-length(tx_bins)] + 1,
-                                      end = tx_bins[-1]),
+    tx_gr <- GenomicRanges::GRanges(seqnames = tx_chr,
+                     ranges = IRanges::IRanges(start = bins[-length(bins)] + 1,
+                                      end = bins[-1]),
                      strand = tx_strand)
   } else{
-    tx_gr <- GRanges(seqnames = tx_chr,
-                     ranges = IRanges(start = tx_bins[-1] + 1,
-                                      end = tx_bins[-length(tx_bins)]),
+    tx_gr <- GenomicRanges::GRanges(seqnames = tx_chr,
+                     ranges = IRanges::IRanges(start = bins[-1] + 1,
+                                      end = bins[-length(bins)]),
                      strand = tx_strand)
   }
 
 
   # make holes for introns
-  exons_gr <- GRanges(seqnames = tx_chr,
-                      ranges = IRanges(start = tx_start +
+  exons_gr <- GenomicRanges::GRanges(seqnames = tx_chr,
+                      ranges = IRanges::IRanges(start = tx_start +
                                          tx_ex_starts + 1,
                                        width = tx_ex_len),
                       strand = tx_strand)
 
   tx_gr |>
     as("GRangesList") |>
-    sapply(\(.x) intersect(.x, exons_gr))
+    sapply(\(.x) GenomicRanges::intersect(.x, exons_gr))
 }
 
 
