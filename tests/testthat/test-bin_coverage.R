@@ -125,3 +125,20 @@ bins_coverage(prepare_transcript(tx_name = "F23F1.10.1",endedness =  3L),
   expect_identical(c(0L, 2L, 1L))
 
 
+
+# Different bins ----
+
+bins <- c(0, 10, 20,60, 150, 300, 3000)
+
+bins_coverage(prepare_transcript(tx_name = "F23F1.10.1",endedness =  5L),
+              "II", "-",
+              bam_content) |>
+  expect_identical(c(0L, 0L, 0L, 1L, 2L))
+
+bins_coverage(prepare_transcript(tx_name = "F23F1.10.1",endedness =  3L),
+              "II", "-",
+              bam_content) |>
+  expect_identical(c(0L, 0L, 0L, 0L, 2L))
+
+
+

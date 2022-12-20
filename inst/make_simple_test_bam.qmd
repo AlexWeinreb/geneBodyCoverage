@@ -236,3 +236,51 @@ Rsamtools::asBam("../tests/testthat/fixtures/simple.sam", overwrite = TRUE)
 ```
 
 
+
+
+
+# Different bins
+
+We also want to check that the results stay valid with different sets of bins, using the same transcripts and reads as above.
+
+Let's use this set:
+
+```{r}
+#| eval: false
+bins <- c(0, 10, 20,60, 150, 300, 3000)
+```
+
+
+## F23F1.10.1: - strand, two exons
+
+
+```{text}
+with # = 10bp       3'                                                      5'
+                        #####################                ##############
+                        |                   |                |            |
+    genomic        41,471              41,682            41844       41,982
+    BED ref        41,470                                            41,982
+                        #####################                ##############
+                            |              |                        |   |||
+   |bins spliced          300            150                       60  20 0
+5' |bins unspliced        461            311                              0
+   |bins genomic       41,521         41,671                   41,922     41,982
+                        #####################                ##############
+                        |||   |        |                              |     
+   |bins spliced        0    60      150                            300
+3' |bins unspliced      0    60      150                            461
+   |bins genomic   41,471  41531  41,621                         41,932
+   
+   reads                                 <<<<................<<<<<
+                                        <<<
+                        #####################                ##############
+                        |   ^ |            ^                        ^ |  ^^
+   5' counts                |      2       |    1                   | 0  ||
+                                                                         00
+   3' counts            |||  0|     0  |          2                   |
+                        00
+```
+
+
+
+
