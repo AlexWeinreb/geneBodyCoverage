@@ -1,3 +1,10 @@
+---
+format:
+  html:
+    embed-resources: true
+---
+
+
 # Examples and tests
 
 
@@ -18,6 +25,7 @@ writeLines(raw[raw[,2] %in% tx_to_keep, 1],
 
 
 ```{r}
+#| eval: false
 source("../R/bin_coords_conversions.R")
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(GenomicRanges))
@@ -79,65 +87,12 @@ with # = 9.7 bp      5'                                               3'
 
 
 ```{r}
+#| eval: false
 xx <- gene_struct |>
   filter(transcript_name == "MTCE.3.1") |>
   mutate(tx_width = map_int(exons_lengths, sum)) |>
   as.list()
 
-opt$endedness <- 5L
-
-
-bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
-
-bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
-                                                xx$strand,
-                                                xx$exons_lengths[[1]],
-                                                xx$exons_starts[[1]])
-
-bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
-  xx$transcript_end,
-  bins_in_unspliced_coords,
-  xx$strand)
-
-gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
-
-
-bins_in_spliced_coords
-bins_in_unspliced_coords
-bins_in_genomic_coords
-gr
-```
-
-
-### From 3' end
-
-```{r}
-xx <- gene_struct |>
-  filter(transcript_name == "MTCE.3.1") |>
-  mutate(tx_width = map_int(exons_lengths, sum)) |>
-  as.list()
-
-opt$endedness <- 3L
-
-
-bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
-
-bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
-                                                xx$strand,
-                                                xx$exons_lengths[[1]],
-                                                xx$exons_starts[[1]])
-
-bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
-  xx$transcript_end,
-  bins_in_unspliced_coords,
-  xx$strand)
-gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
-
-
-bins_in_spliced_coords
-bins_in_unspliced_coords
-bins_in_genomic_coords
-gr
 ```
 
 
@@ -167,64 +122,14 @@ with # = 20 bp      5'                                                          
 
 
 
-### From 5' end
 
 ```{r}
+#| eval: false
 xx <- gene_struct |>
   filter(transcript_name == "B0348.5b.1") |>
   mutate(tx_width = map_int(exons_lengths, sum)) |>
   as.list()
 
-opt$endedness <- 5L
-
-
-bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
-
-bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
-                                                xx$strand,
-                                                xx$exons_lengths[[1]],
-                                                xx$exons_starts[[1]])
-
-bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
-  xx$transcript_end,
-  bins_in_unspliced_coords,
-  xx$strand)
-gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
-
-
-bins_in_spliced_coords
-bins_in_unspliced_coords
-bins_in_genomic_coords
-gr
-```
-
-### From 3' end
-```{r}
-xx <- gene_struct |>
-  filter(transcript_name == "B0348.5b.1") |>
-  mutate(tx_width = map_int(exons_lengths, sum)) |>
-  as.list()
-
-opt$endedness <- 3L
-
-
-bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
-
-bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
-                                                xx$strand,
-                                                xx$exons_lengths[[1]],
-                                                xx$exons_starts[[1]])
-
-bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
-  xx$transcript_end,
-  bins_in_unspliced_coords,
-  xx$strand)
-gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
-
-bins_in_spliced_coords
-bins_in_unspliced_coords
-bins_in_genomic_coords
-gr
 ```
 
 
@@ -254,66 +159,13 @@ with # = 3.3bp       3'                                                    5'
 
 
 
-
-
-### From 5' end
-
 ```{r}
+#| eval: false
 xx <- gene_struct |>
   filter(transcript_name == "Y74C9A.6") |>
   mutate(tx_width = map_int(exons_lengths, sum)) |>
   as.list()
 
-opt$endedness <- 5L
-
-
-bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
-
-bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
-                                                xx$strand,
-                                                xx$exons_lengths[[1]],
-                                                xx$exons_starts[[1]])
-
-bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
-  xx$transcript_end,
-  bins_in_unspliced_coords,
-  xx$strand)
-gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
-
-
-bins_in_spliced_coords
-bins_in_unspliced_coords
-bins_in_genomic_coords
-gr
-```
-
-### From 3' end
-```{r}
-xx <- gene_struct |>
-  filter(transcript_name == "Y74C9A.6") |>
-  mutate(tx_width = map_int(exons_lengths, sum)) |>
-  as.list()
-
-opt$endedness <- 3L
-
-
-bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
-
-bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
-                                                xx$strand,
-                                                xx$exons_lengths[[1]],
-                                                xx$exons_starts[[1]])
-
-bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
-  xx$transcript_end,
-  bins_in_unspliced_coords,
-  xx$strand)
-gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
-
-bins_in_spliced_coords
-bins_in_unspliced_coords
-bins_in_genomic_coords
-gr
 ```
 
 
@@ -341,68 +193,14 @@ with # = 10bp       3'                                                      5'
 
 
 
-
-
-
-### From 5' end
-
 ```{r}
+#| eval: false
 xx <- gene_struct |>
   filter(transcript_name == "F23F1.10.1") |>
   mutate(tx_width = map_int(exons_lengths, sum)) |>
   as.list()
 
-opt$endedness <- 5L
 
-
-bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
-
-bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
-                                                xx$strand,
-                                                xx$exons_lengths[[1]],
-                                                xx$exons_starts[[1]])
-
-bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
-  xx$transcript_end,
-  bins_in_unspliced_coords,
-  xx$strand)
-gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
-
-
-bins_in_spliced_coords
-bins_in_unspliced_coords
-bins_in_genomic_coords
-gr
-```
-
-
-### From 3' end
-```{r}
-xx <- gene_struct |>
-  filter(transcript_name == "F23F1.10.1") |>
-  mutate(tx_width = map_int(exons_lengths, sum)) |>
-  as.list()
-
-opt$endedness <- 3L
-
-
-bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
-
-bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
-                                                xx$strand,
-                                                xx$exons_lengths[[1]],
-                                                xx$exons_starts[[1]])
-
-bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
-  xx$transcript_end,
-  bins_in_unspliced_coords,
-  xx$strand)
-gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
-
-bins_in_spliced_coords
-bins_in_unspliced_coords
-bins_in_genomic_coords
-gr
 ```
 
 
@@ -412,30 +210,13 @@ gr
 
 
 ```{r}
+#| eval: false
 xx <- gene_struct |>
   filter(transcript_name == "C06C3.1b.1") |>
   mutate(tx_width = map_int(exons_lengths, sum)) |>
   as.list()
 
-opt$endedness <- 3L
 
-
-bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
-
-bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
-                                                xx$strand,
-                                                xx$exons_lengths[[1]],
-                                                xx$exons_starts[[1]])
-
-bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
-  xx$transcript_end,
-  bins_in_unspliced_coords,
-  xx$strand)
-gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
-
-bins_in_spliced_coords
-bins_in_unspliced_coords
-bins_in_genomic_coords
 
 ```
 
@@ -448,6 +229,7 @@ bins_in_genomic_coords
 
 
 ```{r}
+#| eval: false
 xx <- gene_struct |>
   filter(transcript_name == "T14G10.2b.1") |>
   mutate(tx_width = map_int(exons_lengths, sum)) |>
@@ -455,23 +237,6 @@ xx <- gene_struct |>
 
 opt$endedness <- 3L
 
-
-bins_in_spliced_coords <- map(xx$tx_width, ~bins[bins <= .x])[[1]]
-
-bins_in_unspliced_coords <- coords_to_unspliced(bins_in_spliced_coords,
-                                                xx$strand,
-                                                xx$exons_lengths[[1]],
-                                                xx$exons_starts[[1]])
-
-bins_in_genomic_coords <- coords_to_genomic(xx$transcript_start,
-  xx$transcript_end,
-  bins_in_unspliced_coords,
-  xx$strand)
-gr <- coords_as_granges(xx$chr, bins_in_genomic_coords, xx$strand, xx$transcript_start, xx$exons_starts[[1]], xx$exons_lengths[[1]])
-
-bins_in_spliced_coords
-bins_in_unspliced_coords
-bins_in_genomic_coords
 
 ```
 
