@@ -184,7 +184,7 @@ if(opt$nproc == 1 || ! requireNamespace("furrr", quietly = TRUE)){
 
 } else{
 
-  future::plan(multicore, workers = opt$nproc)
+  future::plan("multicore", workers = opt$nproc)
 
 
   cat("\nFor each transcript, getting bins coordinates (using ",opt$nproc," threads)\n")
