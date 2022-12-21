@@ -98,6 +98,41 @@ coords_as_granges <- function(tx_chr, bins, tx_strand,
 
 
 
+#' Convert bins to a list of GRanges objects in genomic coordinates
+#'
+#' @param tx_chr,tx_strand,tx_start,tx_end Genomic position of the transcript
+#' @param exons_lengths,exons_starts Structure of the transcript
+#' @param bins Breaks for the bins
+#' @param opt List containing endedness (do we count from 3' or from 5')
+#'
+#' @return A list of GRranges objects, each element of the list is one bin, There might be several Ranges within a single element if that bins spans several exons (making holes for introns)
+#' @export
+#'
+#' @examples
+#' bins_to_granges(tx_chr = "I", tx_strand = "+",
+#'   tx_start = 100, tx_end = 300,
+#'   exons_lengths = c(10,50),exons_starts = c(0,150),
+#'   bins = c(0,5,15,30),
+#'   opt = list(endedness = 5L))
+bins_to_granges <- function(tx_chr, tx_strand, tx_start, tx_end,
+                            exons_lengths, exons_starts,
+                            bins,
+                            opt){
+
+  tx_width <- sum(exons_lengths)
+  bins_in_spliced <- bins[bins <= tx_width]
+
+  bins_in_unspliced <- coords_to_unspliced(bins_in_spliced, tx_strand, exons_lengths,
+                                  exons_starts, opt)
+
+  bins_in_genomic <- coords_to_genomic(tx_start, tx_end, bins_in_unspliced, tx_strand, opt)
+
+  bins_as_granges <- coords_as_granges(tx_chr, bins_in_genomic, tx_strand,
+                                       tx_start, exons_starts, exons_lengths,
+                                       opt)
+
+  bins_as_granges
+}
 
 
 

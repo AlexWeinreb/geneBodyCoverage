@@ -8,15 +8,17 @@ bins <- c(0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,16
           1700,1800,1900,2000,2100,2200,2300,2400,2500,2700,2900,3100,3400,3700,
           4000,4500,5000,5500,6000,6500,7000,8000,9000,10000,Inf)
 
+chroms <- as.roman(1:5) |>
+  as.character() |>
+  c("X","MtDNA")
+
 gene_struct <- readr::read_delim(test_path("fixtures","c_elegans.PRJNA13758.WS281_filtered.bed"),
                           delim = "\t",
                           col_names = c("chr","transcript_start","transcript_end","transcript_name","score",
                                         "strand","thick_start","thick_end","rgb",
                                         "nb_exons","exons_lengths","exons_starts"),
                           col_types = readr::cols(
-                            chr = readr::col_factor(as.roman(1:5) |>
-                                               as.character() |>
-                                               c("X","MtDNA")),      #1
+                            chr = readr::col_factor(chroms),      #1
                             transcript_start = readr::col_integer(),        #2 on the + strand (even if tx on -)
                             transcript_end = readr::col_integer(),          #3
                             transcript_name = readr::col_character(),       #4
@@ -51,8 +53,6 @@ prepare_transcript <- function(tx_name, endedness){
     dplyr::filter(transcript_name == tx_name) |>
     dplyr::mutate(tx_width = purrr::map_int(exons_lengths, sum)) |>
     as.list()
-
-  cat(length(xx$transcript_name),"\n")
 
 
   bins_in_spliced_coords <- purrr::map(xx$tx_width,
@@ -111,6 +111,14 @@ local({
 
   expect_identical(res$bins_gr,
                    my_test_gr)
+
+  gr_full <- bins_to_granges(tx_chr = factor("MtDNA", levels = chroms),
+                             tx_strand = factor("+", levels=c("+","-")),
+                             tx_start = 112, tx_end = 549,
+                  exons_lengths = c(437), exons_starts = c(0),
+                  bins = bins, opt = list(endedness = 5L))
+
+  expect_identical(gr_full, my_test_gr)
 })
 
 
@@ -144,6 +152,14 @@ local({
 
   expect_identical(res$bins_gr,
                    my_test_gr)
+
+  gr_full <- bins_to_granges(tx_chr = factor("MtDNA", levels = chroms),
+                             tx_strand = factor("+", levels=c("+","-")),
+                             tx_start = 112, tx_end = 549,
+                             exons_lengths = c(437), exons_starts = c(0),
+                             bins = bins, opt = list(endedness = 3L))
+
+  expect_identical(gr_full, my_test_gr)
 })
 
 
@@ -181,6 +197,15 @@ local({
 
   expect_identical(res$bins_gr,
                    my_test_gr)
+
+
+  gr_full <- bins_to_granges(tx_chr = factor("V", levels = chroms),
+                             tx_strand = factor("+", levels=c("+","-")),
+                             tx_start = 5535, tx_end = 6634,
+                             exons_lengths = c(431, 611), exons_starts = c(0, 488),
+                             bins = bins, opt = list(endedness = 5L))
+
+  expect_identical(gr_full, my_test_gr)
 })
 
 
@@ -219,6 +244,14 @@ local({
 
   expect_identical(res$bins_gr,
                    my_test_gr)
+
+  gr_full <- bins_to_granges(tx_chr = factor("V", levels = chroms),
+                             tx_strand = factor("+", levels=c("+","-")),
+                             tx_start = 5535, tx_end = 6634,
+                             exons_lengths = c(431, 611), exons_starts = c(0, 488),
+                             bins = bins, opt = list(endedness = 3L))
+
+  expect_identical(gr_full, my_test_gr)
 })
 
 
@@ -252,6 +285,14 @@ local({
 
   expect_identical(res$bins_gr,
                    my_test_gr)
+
+  gr_full <- bins_to_granges(tx_chr = factor("I", levels = chroms),
+                             tx_strand = factor("-", levels=c("+","-")),
+                             tx_start = 3746, tx_end = 3909,
+                             exons_lengths = c(163), exons_starts = c(0),
+                             bins = bins, opt = list(endedness = 5L))
+
+  expect_identical(gr_full, my_test_gr)
 })
 
 
@@ -285,6 +326,14 @@ local({
 
   expect_identical(res$bins_gr,
                    my_test_gr)
+
+  gr_full <- bins_to_granges(tx_chr = factor("I", levels = chroms),
+                             tx_strand = factor("-", levels=c("+","-")),
+                             tx_start = 3746, tx_end = 3909,
+                             exons_lengths = c(163), exons_starts = c(0),
+                             bins = bins, opt = list(endedness = 3L))
+
+  expect_identical(gr_full, my_test_gr)
 })
 
 
@@ -325,6 +374,14 @@ local({
 
   expect_identical(res$bins_gr,
                    my_test_gr)
+
+  gr_full <- bins_to_granges(tx_chr = factor("II", levels = chroms),
+                             tx_strand = factor("-", levels=c("+","-")),
+                             tx_start = 41470, tx_end = 41982,
+                             exons_lengths = c(212, 139), exons_starts = c(0, 373),
+                             bins = bins, opt = list(endedness = 5L))
+
+  expect_identical(gr_full, my_test_gr)
 })
 
 
@@ -364,7 +421,14 @@ local({
 
   expect_identical(res$bins_gr,
                    my_test_gr)
+
+
+  gr_full <- bins_to_granges(tx_chr = factor("II", levels = chroms),
+                             tx_strand = factor("-", levels=c("+","-")),
+                             tx_start = 41470, tx_end = 41982,
+                             exons_lengths = c(212, 139), exons_starts = c(0, 373),
+                             bins = bins, opt = list(endedness = 3L))
+
+  expect_identical(gr_full, my_test_gr)
 })
-
-
 
