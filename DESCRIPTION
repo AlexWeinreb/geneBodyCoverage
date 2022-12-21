@@ -12,20 +12,23 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Suggests: 
-    dplyr,
     GenomeInfoDb,
-    readr,
+    furrr,
     Rsamtools,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    future
 Config/testthat/edition: 3
 URL: https://github.com/AlexWeinreb/geneBodyCoverage
 BugReports: https://github.com/AlexWeinreb/geneBodyCoverage/issues
 Imports: 
     BiocGenerics,
+    dplyr,
     GenomicAlignments,
     GenomicRanges,
+    getopt,
     IRanges,
     methods,
     purrr,
+    readr,
     S4Vectors
 RoxygenNote: 7.2.2
