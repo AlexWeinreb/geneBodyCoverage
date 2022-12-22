@@ -197,6 +197,7 @@ if(opt$nproc == 1 || ! requireNamespace("furrr", quietly = TRUE)){
                                                     strand,
                                                     transcript_start,
                                                     transcript_end,
+                                                    spliced_tx_width,
                                                     exons_lengths,
                                                     exons_starts),
                                         bins_to_granges,
