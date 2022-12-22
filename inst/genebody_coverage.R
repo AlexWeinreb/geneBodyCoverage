@@ -131,9 +131,11 @@ readr::stop_for_problems(gene_struct_raw)
 
 gene_struct <- gene_struct_raw |>
   dplyr::mutate(exons_lengths = strsplit(exons_lengths, ",") |>
-           purrr::map(as.integer),
-         exons_starts = strsplit(exons_starts, ",") |>
-           purrr::map(as.integer))
+                  purrr::map(as.integer),
+                exons_starts = strsplit(exons_starts, ",") |>
+                  purrr::map(as.integer),
+                spliced_tx_width = purrr::map_int(exons_lengths, sum)
+  )
 
 
 # Read alignments
@@ -162,11 +164,12 @@ if(opt$nproc == 1 || ! requireNamespace("furrr", quietly = TRUE)){
   cat("\nFor each transcript, getting bins coordinates (using a single thread)\n")
 
   tx_struct <- gene_struct |>
-    dplyr::filter(transcript_end -  transcript_start > opt$min_length) |>
+    dplyr::filter(spliced_tx_width > opt$min_length) |>
     dplyr::mutate(bins_gr = purrr::pmap(list(chr,
                                              strand,
                                              transcript_start,
                                              transcript_end,
+                                             spliced_tx_width,
                                              exons_lengths,
                                              exons_starts),
                                         bins_to_granges,

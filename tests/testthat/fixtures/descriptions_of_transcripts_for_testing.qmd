@@ -13,12 +13,12 @@ This file contains some illustrated examples that help think about the low-level
 The reference file was generated with the code:
 ```{r}
 #| eval: false
-tx_to_keep <- c("MTCE.3.1", "B0348.5b.1", "C06C3.1b.1", "Y74C9A.6", "F23F1.10.1", "T14G10.2b.1")
+tx_to_keep <- c("MTCE.3.1", "B0348.5b.1", "C06C3.1b.1", "Y74C9A.6", "F23F1.10.1", "T14G10.2b.1", "Y66H1A.8a.1")
 
-raw <- readLines("data/geneBody_coverage/c_elegans.PRJNA13758.WS281.canonical_geneset.genePred.bed") |>
+raw <- readLines("../../../../../isoforms/10x_IsoSeq/data/geneBody_coverage/c_elegans.PRJNA13758.WS281.canonical_geneset.genePred.bed") |>
   stringr::str_match("^[IVXMtDNA]{1,5}\t\\d{1,9}\t\\d{1,9}\t([A-Za-z0-9\\.]+)\t.*")
 writeLines(raw[raw[,2] %in% tx_to_keep, 1],
-           "data/geneBody_coverage/c_elegans.PRJNA13758.WS281_filtered.bed")
+           "c_elegans.PRJNA13758.WS281_filtered.bed")
 
 ```
 

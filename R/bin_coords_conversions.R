@@ -100,7 +100,7 @@ coords_as_granges <- function(tx_chr, bins, tx_strand,
 
 #' Convert bins to a list of GRanges objects in genomic coordinates
 #'
-#' @param tx_chr,tx_strand,tx_start,tx_end Genomic position of the transcript
+#' @param tx_chr,tx_strand,tx_start,tx_end,spliced_tx_width Genomic position of the transcript
 #' @param exons_lengths,exons_starts Structure of the transcript
 #' @param bins Breaks for the bins
 #' @param opt List containing endedness (do we count from 3' or from 5')
@@ -110,17 +110,16 @@ coords_as_granges <- function(tx_chr, bins, tx_strand,
 #'
 #' @examples
 #' bins_to_granges(tx_chr = "I", tx_strand = "+",
-#'   tx_start = 100, tx_end = 300,
+#'   tx_start = 100, tx_end = 300, spliced_tx_width = 60,
 #'   exons_lengths = c(10,50),exons_starts = c(0,150),
 #'   bins = c(0,5,15,30),
 #'   opt = list(endedness = 5L))
-bins_to_granges <- function(tx_chr, tx_strand, tx_start, tx_end,
+bins_to_granges <- function(tx_chr, tx_strand, tx_start, tx_end, spliced_tx_width,
                             exons_lengths, exons_starts,
                             bins,
                             opt){
 
-  tx_width <- sum(exons_lengths)
-  bins_in_spliced <- bins[bins <= tx_width]
+  bins_in_spliced <- bins[bins <= spliced_tx_width]
 
   bins_in_unspliced <- coords_to_unspliced(bins_in_spliced, tx_strand, exons_lengths,
                                   exons_starts, opt)

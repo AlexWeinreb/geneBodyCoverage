@@ -9,6 +9,7 @@ bins_to_granges(
   tx_strand,
   tx_start,
   tx_end,
+  spliced_tx_width,
   exons_lengths,
   exons_starts,
   bins,
@@ -16,7 +17,7 @@ bins_to_granges(
 )
 }
 \arguments{
-\item{tx_chr, tx_strand, tx_start, tx_end}{Genomic position of the transcript}
+\item{tx_chr, tx_strand, tx_start, tx_end, spliced_tx_width}{Genomic position of the transcript}
 
 \item{exons_lengths, exons_starts}{Structure of the transcript}
 
