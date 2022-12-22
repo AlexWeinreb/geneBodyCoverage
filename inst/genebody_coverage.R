@@ -192,7 +192,7 @@ if(opt$nproc == 1 || ! requireNamespace("furrr", quietly = TRUE)){
 
   cat("\nFor each transcript, getting bins coordinates (using ",opt$nproc," threads)\n")
   tx_struct <- gene_struct |>
-    dplyr::filter(transcript_end -  transcript_start > opt$min_length) |>
+    dplyr::filter(spliced_tx_width > opt$min_length) |>
     dplyr::mutate(bins_gr = furrr::future_pmap(list(chr,
                                                     strand,
                                                     transcript_start,
