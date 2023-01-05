@@ -1,4 +1,8 @@
 
+# devtools::load_all()
+# library(testthat)
+
+
 # Initializations ----
 
 bam_content <- GenomicAlignments::readGAlignments(file = test_path("fixtures", "simple.bam"),
@@ -36,6 +40,11 @@ gene_struct <- readr::read_delim(test_path("fixtures","c_elegans.PRJNA13758.WS28
                 exons_starts = strsplit(exons_starts, ",") |>
                   purrr::map(as.integer))
 
+
+
+
+# Tests for bins ----
+
 prepare_transcript <- function(tx_name, endedness){
   opt <- list(endedness = endedness)
   xx <- gene_struct |>
@@ -58,7 +67,7 @@ prepare_transcript <- function(tx_name, endedness){
                                               xx$strand,
                                               opt)
 
-  bins_gr <- coords_as_granges(xx$chr,
+  bins_gr <- coords_as_bin_granges(xx$chr,
                                bins_in_genomic_coords,
                                xx$strand,
                                xx$transcript_start,
@@ -68,7 +77,6 @@ prepare_transcript <- function(tx_name, endedness){
   bins_gr
 }
 
-# Tests ----
 
 
 #~ MTCE.3.1 ----
@@ -139,6 +147,87 @@ bins_coverage(prepare_transcript(tx_name = "F23F1.10.1",endedness =  3L),
               "II", "-",
               bam_content) |>
   expect_identical(c(0L, 0L, 0L, 0L, 2L))
+
+
+
+
+
+
+
+
+
+# Test for breaks ----
+
+
+bins <- c(0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,
+          1700,1800,1900,2000,2100,2200,2300,2400,2500,2700,2900,3100,3400,3700,
+          4000,4500,5000,5500,6000,6500,7000,8000,9000,10000,Inf)
+
+prepare_transcript <- function(tx_name, endedness){
+  opt <- list(endedness = endedness)
+  xx <- gene_struct |>
+    dplyr::filter(transcript_name == tx_name) |>
+    dplyr::mutate(tx_width = purrr::map_int(exons_lengths, sum)) |>
+    as.list()
+
+  breaks_to_granges(tx_chr = xx$chr,
+                    exons_starts = xx$exons_starts[[1]],
+                    tx_end = xx$transcript_end,
+                    spliced_tx_width = xx$tx_width,
+                    exons_lengths = xx$exons_lengths[[1]],
+                    tx_strand = xx$strand,
+                    tx_start =  xx$transcript_start,
+                    breakpoints = bins,
+                    opt = opt)
+
+}
+
+#~ MTCE.3.1 ----
+breaks_coverage(prepare_transcript(tx_name = "MTCE.3.1",endedness =  5L),
+              bam_content) |>
+  expect_identical(c(0L,1L,0L,0L,0L))
+
+breaks_coverage(prepare_transcript(tx_name = "MTCE.3.1",endedness =  3L),
+              bam_content) |>
+  expect_identical(c(0L,0L,1L,0L,1L))
+
+
+
+
+#~ B0348.5b.1 ----
+
+breaks_coverage(prepare_transcript(tx_name = "B0348.5b.1",endedness =  5L),
+              bam_content) |>
+  expect_identical(c(0L,0L,0L,1L,1L,1L,0L,0L,0L,0L,0L))
+
+breaks_coverage(prepare_transcript(tx_name = "B0348.5b.1",endedness =  3L),
+              bam_content) |>
+  expect_identical(c(0L,0L,0L,0L,0L,0L,1L,1L,1L,1L,0L))
+
+
+
+#~ Y74C9A.6 ----
+
+breaks_coverage(prepare_transcript(tx_name = "Y74C9A.6",endedness =  5L),
+              bam_content) |>
+  expect_identical(c(0L,1L))
+
+breaks_coverage(prepare_transcript(tx_name = "Y74C9A.6",endedness =  3L),
+              bam_content) |>
+  expect_identical(c(0L,0L))
+
+
+
+#~ F23F1.10.1 ----
+
+breaks_coverage(prepare_transcript(tx_name = "F23F1.10.1",endedness =  5L),
+              bam_content) |>
+  expect_identical(c(0L,1L,0L,0L))
+
+breaks_coverage(prepare_transcript(tx_name = "F23F1.10.1",endedness =  3L),
+              bam_content) |>
+  expect_identical(c(0L,0L,1L,0L))
+
 
 
 

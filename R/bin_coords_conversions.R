@@ -65,7 +65,7 @@ coords_to_genomic <- function(tx_st, tx_end, bins, tx_strand, opt){
 #' @return A list of GRranges objects, each element of the list is one bin, There might be several Ranges within a single element if that bins spans several exons (making holes for introns)
 #'
 #' @importFrom methods as
-coords_as_granges <- function(tx_chr, bins, tx_strand,
+coords_as_bin_granges <- function(tx_chr, bins, tx_strand,
                               tx_start, tx_ex_starts, tx_ex_len,
                               opt){
 
@@ -97,8 +97,24 @@ coords_as_granges <- function(tx_chr, bins, tx_strand,
 }
 
 
+#' Coordinates as minimal GRanges
+#'
+#' @param tx_chr,tx_strand Transcript genomic position
+#' @param breaks_in_genomic Breakpoints positions in genomic coordinates
+#'
+#' @return A Granges object, each range is 1 bp wide around the breakpoint
+coords_as_min_granges <- function(tx_chr, tx_strand, breaks_in_genomic){
+  GenomicRanges::GRanges(seqnames = tx_chr,
+                         ranges = IRanges::IRanges(start = breaks_in_genomic,
+                                                   width = 1L),
+                         strand = tx_strand)
+}
+
 
 #' Convert bins to a list of GRanges objects in genomic coordinates
+#'
+#' As input, we take the breaks (the bins limits), as output, we get GRanges that cover the bins (excluding exons).
+#' Note this is different from `breaks_to_granges()` which returns a small GRange around each breakpoint.
 #'
 #' @param tx_chr,tx_strand,tx_start,tx_end,spliced_tx_width Genomic position of the transcript
 #' @param exons_lengths,exons_starts Structure of the transcript
@@ -110,7 +126,7 @@ coords_as_granges <- function(tx_chr, bins, tx_strand,
 #'
 #' @examples
 #' bins_to_granges(tx_chr = "I", tx_strand = "+",
-#'   tx_start = 100, tx_end = 300, spliced_tx_width = 60,
+#'   tx_start = 100, tx_end = 200, spliced_tx_width = 60,
 #'   exons_lengths = c(10,50),exons_starts = c(0,150),
 #'   bins = c(0,5,15,30),
 #'   opt = list(endedness = 5L))
@@ -126,11 +142,51 @@ bins_to_granges <- function(tx_chr, tx_strand, tx_start, tx_end, spliced_tx_widt
 
   bins_in_genomic <- coords_to_genomic(tx_start, tx_end, bins_in_unspliced, tx_strand, opt)
 
-  bins_as_granges <- coords_as_granges(tx_chr, bins_in_genomic, tx_strand,
+  bins_as_granges <- coords_as_bin_granges(tx_chr, bins_in_genomic, tx_strand,
                                        tx_start, exons_starts, exons_lengths,
                                        opt)
 
   bins_as_granges
+}
+
+
+
+
+
+#' Convert bins to a list of GRanges objects in genomic coordinates
+#'
+#' As input, we take the breakpoints, as output, we get GRanges that cover these points (1 bp-wide each).
+#'  Note this is different from `bins_to_granges()` which returns the bins between the breakpoints.
+#'
+#' @param tx_chr,tx_strand,tx_start,tx_end,spliced_tx_width Genomic position of the transcript
+#' @param exons_lengths,exons_starts Structure of the transcript
+#' @param breakpoints Coordinates of the breakpoints (in the spliced transcript)
+#' @param opt List containing endedness (do we count from 3' or from 5')
+#'
+#' @return A list of GRranges objects, each element of the list is one breakpoint.
+#' @export
+#'
+#' @examples
+#' breaks_to_granges(tx_chr = "I", tx_strand = "+",
+#'   tx_start = 100, tx_end = 200, spliced_tx_width = 60,
+#'   exons_lengths = c(10,50), exons_starts = c(0,150),
+#'   breakpoints = c(0,5,15,30),
+#'   opt = list(endedness = 5L))
+breaks_to_granges <- function(tx_chr, tx_strand, tx_start, tx_end, spliced_tx_width,
+                            exons_lengths, exons_starts,
+                            breakpoints,
+                            opt){
+
+  breaks_in_spliced <- breakpoints[breakpoints <= spliced_tx_width]
+
+  breaks_in_unspliced <- coords_to_unspliced(breaks_in_spliced, tx_strand, exons_lengths,
+                                           exons_starts, opt)
+
+  breaks_in_genomic <- coords_to_genomic(tx_start, tx_end, breaks_in_unspliced, tx_strand, opt)
+
+  breaks_as_granges <- coords_as_min_granges(tx_chr, tx_strand, breaks_in_genomic)
+
+  breaks_as_granges
 }
 
 

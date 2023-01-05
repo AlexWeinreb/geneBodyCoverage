@@ -176,14 +176,26 @@ if(opt$nproc == 1 || ! requireNamespace("furrr", quietly = TRUE)){
                                         bins,
                                         opt))
 
+  tx_struct <- gene_struct |>
+    dplyr::filter(spliced_tx_width > opt$min_length) |>
+    dplyr::mutate(breaks_gr = purrr::pmap(list(chr,
+                                             strand,
+                                             transcript_start,
+                                             transcript_end,
+                                             spliced_tx_width,
+                                             exons_lengths,
+                                             exons_starts),
+                                        breaks_to_granges,
+                                        bins,
+                                        opt))
+
   cat("Counting alignments (using a single thread)\n")
 
   bin_quantifs <- tx_struct |>
-    dplyr::select(bins_gr,
-                  chr,
-                  strand) |>
-    purrr::pmap(bins_coverage,
-                bam_content)
+    dplyr::mutate(quantifs = purrr::map(breaks_gr,
+                              breaks_coverage,
+                              bam_content))
+
 
 } else{
 
