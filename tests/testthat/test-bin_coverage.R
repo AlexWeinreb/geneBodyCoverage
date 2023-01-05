@@ -68,12 +68,12 @@ prepare_transcript <- function(tx_name, endedness){
                                               opt)
 
   bins_gr <- coords_as_bin_granges(xx$chr,
-                               bins_in_genomic_coords,
-                               xx$strand,
-                               xx$transcript_start,
-                               xx$exons_starts[[1]],
-                               xx$exons_lengths[[1]],
-                               opt)
+                                   bins_in_genomic_coords,
+                                   xx$strand,
+                                   xx$transcript_start,
+                                   xx$exons_starts[[1]],
+                                   xx$exons_lengths[[1]],
+                                   opt)
   bins_gr
 }
 
@@ -170,25 +170,27 @@ prepare_transcript <- function(tx_name, endedness){
     dplyr::mutate(tx_width = purrr::map_int(exons_lengths, sum)) |>
     as.list()
 
-  breaks_to_granges(tx_chr = xx$chr,
-                    exons_starts = xx$exons_starts[[1]],
+  breaks_to_genomic(tx_chr = xx$chr,
+                    tx_strand = xx$strand,
+                    tx_start =  xx$transcript_start,
                     tx_end = xx$transcript_end,
                     spliced_tx_width = xx$tx_width,
                     exons_lengths = xx$exons_lengths[[1]],
-                    tx_strand = xx$strand,
-                    tx_start =  xx$transcript_start,
+                    exons_starts = xx$exons_starts[[1]],
                     breakpoints = bins,
                     opt = opt)
 
 }
 
 #~ MTCE.3.1 ----
-breaks_coverage(prepare_transcript(tx_name = "MTCE.3.1",endedness =  5L),
-              bam_content) |>
+breaks_coverage("MtDNA", "+",
+                prepare_transcript(tx_name = "MTCE.3.1",endedness =  5L),
+                bam_content) |>
   expect_identical(c(0L,1L,0L,0L,0L))
 
-breaks_coverage(prepare_transcript(tx_name = "MTCE.3.1",endedness =  3L),
-              bam_content) |>
+breaks_coverage("MtDNA", "+",
+                prepare_transcript(tx_name = "MTCE.3.1",endedness =  3L),
+                bam_content) |>
   expect_identical(c(0L,0L,1L,0L,1L))
 
 
@@ -196,36 +198,42 @@ breaks_coverage(prepare_transcript(tx_name = "MTCE.3.1",endedness =  3L),
 
 #~ B0348.5b.1 ----
 
-breaks_coverage(prepare_transcript(tx_name = "B0348.5b.1",endedness =  5L),
-              bam_content) |>
+breaks_coverage("V", "+",
+                prepare_transcript(tx_name = "B0348.5b.1",endedness =  5L),
+                bam_content) |>
   expect_identical(c(0L,0L,0L,1L,1L,1L,0L,0L,0L,0L,0L))
 
-breaks_coverage(prepare_transcript(tx_name = "B0348.5b.1",endedness =  3L),
-              bam_content) |>
+breaks_coverage("V", "+",
+                prepare_transcript(tx_name = "B0348.5b.1",endedness =  3L),
+                bam_content) |>
   expect_identical(c(0L,0L,0L,0L,0L,0L,1L,1L,1L,1L,0L))
 
 
 
 #~ Y74C9A.6 ----
 
-breaks_coverage(prepare_transcript(tx_name = "Y74C9A.6",endedness =  5L),
-              bam_content) |>
+breaks_coverage("I", "-",
+                prepare_transcript(tx_name = "Y74C9A.6",endedness =  5L),
+                bam_content) |>
   expect_identical(c(0L,1L))
 
-breaks_coverage(prepare_transcript(tx_name = "Y74C9A.6",endedness =  3L),
-              bam_content) |>
+breaks_coverage("I", "-",
+                prepare_transcript(tx_name = "Y74C9A.6",endedness =  3L),
+                bam_content) |>
   expect_identical(c(0L,0L))
 
 
 
 #~ F23F1.10.1 ----
 
-breaks_coverage(prepare_transcript(tx_name = "F23F1.10.1",endedness =  5L),
-              bam_content) |>
+breaks_coverage("II", "-",
+                prepare_transcript(tx_name = "F23F1.10.1",endedness =  5L),
+                bam_content) |>
   expect_identical(c(0L,1L,0L,0L))
 
-breaks_coverage(prepare_transcript(tx_name = "F23F1.10.1",endedness =  3L),
-              bam_content) |>
+breaks_coverage("II", "-",
+                prepare_transcript(tx_name = "F23F1.10.1",endedness =  3L),
+                bam_content) |>
   expect_identical(c(0L,0L,1L,0L))
 
 

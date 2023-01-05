@@ -4,10 +4,12 @@
 \alias{breaks_coverage}
 \title{Breakpoints coverage}
 \usage{
-breaks_coverage(breaks_gr, reads)
+breaks_coverage(tx_chr, tx_strand, breaks_in_genomic, reads)
 }
 \arguments{
-\item{breaks_gr}{Breakpoint positions as a GRanges}
+\item{tx_chr, tx_strand}{Chromosome and strand of the transcript}
+
+\item{breaks_in_genomic}{Breakpoint positions in genomic coordinates}
 
 \item{reads}{Content of the BAM file containing reads}
 }

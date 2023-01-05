@@ -46,12 +46,18 @@ bins_coverage <- function(bins_gr, chr, strand, bam_content){
 
 #' Breakpoints coverage
 #'
-#' @param breaks_gr Breakpoint positions as a GRanges
+#' @param tx_chr,tx_strand Chromosome and strand of the transcript
+#' @param breaks_in_genomic Breakpoint positions in genomic coordinates
 #' @param reads Content of the BAM file containing reads
 #'
 #' @return Count of reads on breakpoints
 #' @export
-breaks_coverage <- function(breaks_gr, reads){
+breaks_coverage <- function(tx_chr, tx_strand, breaks_in_genomic, reads){
+  breaks_gr <- GenomicRanges::GRanges(seqnames = tx_chr,
+                         ranges = IRanges::IRanges(start = breaks_in_genomic,
+                                                   width = 1L),
+                         strand = tx_strand)
+
   GenomicRanges::countOverlaps(breaks_gr, reads)
 }
 

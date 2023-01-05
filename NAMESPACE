@@ -3,5 +3,5 @@
 export(bins_coverage)
 export(bins_to_granges)
 export(breaks_coverage)
-export(breaks_to_granges)
+export(breaks_to_genomic)
 importFrom(methods,as)

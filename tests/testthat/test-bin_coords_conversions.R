@@ -73,15 +73,21 @@ prepare_transcript <- function(tx_name, endedness){
                                xx$exons_starts[[1]],
                                xx$exons_lengths[[1]],
                                opt)
-  breaks_gr <- coords_as_min_granges(xx$chr,
-                                     xx$strand,
-                                     bins_in_genomic_coords)
+  breaks_in_genomic <- breaks_to_genomic(tx_chr = xx$chr,
+                                         tx_strand = xx$strand,
+                                         tx_start = xx$transcript_start,
+                                         tx_end = xx$transcript_end,
+                                         spliced_tx_width = xx$spliced_tx_width,
+                                         exons_lengths = xx$exons_lengths[[1]],
+                                         exons_starts = xx$exons_starts[[1]],
+                                         breakpoints = bins,
+                                         opt = opt)
 
   list(bins_in_spliced_coords = bins_in_spliced_coords,
        bins_in_unspliced_coords = bins_in_unspliced_coords,
        bins_in_genomic_coords = bins_in_genomic_coords,
        bins_gr = bins_gr,
-       breaks_gr = breaks_gr)
+       breaks_in_genomic = breaks_in_genomic)
 }
 
 
@@ -123,19 +129,10 @@ local({
   expect_identical(gr_full, my_test_bin_gr)
 
 
-  my_test_min_gr <- GenomicRanges::GRanges(seqnames = factor("MtDNA", chroms),
-                                           ranges = IRanges::IRanges(start = c(113,213,313,413,513),
-                                                                     width = 1L),
-                                           strand = "+")
-  expect_identical(res$breaks_gr, my_test_min_gr)
 
-  full_min_gr <- breaks_to_granges(tx_chr = factor("MtDNA", levels = chroms),
-                    tx_strand = factor("+", levels=c("+","-")),
-                    tx_start = 112, tx_end = 549, spliced_tx_width = 437,
-                    exons_lengths = c(437), exons_starts = c(0),
-                    breakpoints = bins, opt = list(endedness = 5L))
+  expect_identical(res$breaks_in_genomic, res$bins_in_genomic_coords)
 
-  expect_identical(full_min_gr, my_test_min_gr)
+
 })
 
 
@@ -177,19 +174,7 @@ local({
 
   expect_identical(gr_full, my_test_bin_gr)
 
-  my_test_min_gr <- GenomicRanges::GRanges(seqnames = factor("MtDNA", chroms),
-                                           ranges = IRanges::IRanges(start = c(549,449,349,249,149),
-                                                                     width = 1L),
-                                           strand = "+")
-  expect_identical(res$breaks_gr, my_test_min_gr)
-
-  full_min_gr <- breaks_to_granges(tx_chr = factor("MtDNA", levels = chroms),
-                                   tx_strand = factor("+", levels=c("+","-")),
-                                   tx_start = 112, tx_end = 549,
-                                   exons_lengths = c(437), exons_starts = c(0), spliced_tx_width = 437,
-                                   breakpoints = bins, opt = list(endedness = 3L))
-
-  expect_identical(full_min_gr, my_test_min_gr)
+  expect_identical(res$breaks_in_genomic, res$bins_in_genomic_coords)
 })
 
 
@@ -235,19 +220,7 @@ local({
 
   expect_identical(gr_full, my_test_bin_gr)
 
-  my_test_min_gr <- GenomicRanges::GRanges(seqnames = factor("V", chroms),
-                                           ranges = IRanges::IRanges(start = c(5536,5636,5736,5836,5936,6093,6193,6293,6393,6493,6593),
-                                                                     width = 1L),
-                                           strand = "+")
-  expect_identical(res$breaks_gr, my_test_min_gr)
-
-  full_min_gr <- breaks_to_granges(tx_chr = factor("V", levels = chroms),
-                                   tx_strand = factor("+", levels=c("+","-")),
-                                   tx_start = 5535, tx_end = 6634, spliced_tx_width = 1042,
-                                   exons_lengths = c(431, 611), exons_starts = c(0, 488),
-                                   breakpoints = bins, opt = list(endedness = 5L))
-
-  expect_identical(full_min_gr, my_test_min_gr)
+  expect_identical(res$breaks_in_genomic, res$bins_in_genomic_coords)
 })
 
 
@@ -293,19 +266,7 @@ local({
 
   expect_identical(gr_full, my_test_bin_gr)
 
-  my_test_min_gr <- GenomicRanges::GRanges(seqnames = factor("V", chroms),
-                                           ranges = IRanges::IRanges(start = c(6634,6534,6434,6334,6234,6134,6034,5877,5777,5677,5577),
-                                                                     width = 1L),
-                                           strand = "+")
-  expect_identical(res$breaks_gr, my_test_min_gr)
-
-  full_min_gr <- breaks_to_granges(tx_chr = factor("V", levels = chroms),
-                                   tx_strand = factor("+", levels=c("+","-")),
-                                   tx_start = 5535, tx_end = 6634, spliced_tx_width = 1042,
-                                   exons_lengths = c(431, 611), exons_starts = c(0, 488),
-                                   breakpoints = bins, opt = list(endedness = 3L))
-
-  expect_identical(full_min_gr, my_test_min_gr)
+  expect_identical(res$breaks_in_genomic, res$bins_in_genomic_coords)
 })
 
 
@@ -347,19 +308,7 @@ local({
 
   expect_identical(gr_full, my_test_bin_gr)
 
-  my_test_min_gr <- GenomicRanges::GRanges(seqnames = factor("I", chroms),
-                                           ranges = IRanges::IRanges(start = c(3909,3809),
-                                                                     width = 1L),
-                                           strand = "-")
-  expect_identical(res$breaks_gr, my_test_min_gr)
-
-  full_min_gr <- breaks_to_granges(tx_chr = factor("I", levels = chroms),
-                                   tx_strand = factor("-", levels=c("+","-")),
-                                   tx_start = 3746, tx_end = 3909, spliced_tx_width = 163,
-                                   exons_lengths = c(163), exons_starts = c(0),
-                                   breakpoints = bins, opt = list(endedness = 5L))
-
-  expect_identical(full_min_gr, my_test_min_gr)
+  expect_identical(res$breaks_in_genomic, res$bins_in_genomic_coords)
 })
 
 
@@ -401,19 +350,7 @@ local({
 
   expect_identical(gr_full, my_test_bin_gr)
 
-  my_test_min_gr <- GenomicRanges::GRanges(seqnames = factor("I", chroms),
-                                           ranges = IRanges::IRanges(start = c(3747,3847),
-                                                                     width = 1L),
-                                           strand = "-")
-  expect_identical(res$breaks_gr, my_test_min_gr)
-
-  full_min_gr <- breaks_to_granges(tx_chr = factor("I", levels = chroms),
-                                   tx_strand = factor("-", levels=c("+","-")),
-                                   tx_start = 3746, tx_end = 3909, spliced_tx_width = 163,
-                                   exons_lengths = c(163), exons_starts = c(0),
-                                   breakpoints = bins, opt = list(endedness = 3L))
-
-  expect_identical(full_min_gr, my_test_min_gr)
+  expect_identical(res$breaks_in_genomic, res$bins_in_genomic_coords)
 })
 
 
@@ -461,19 +398,7 @@ local({
 
   expect_identical(gr_full, my_test_bin_gr)
 
-  my_test_min_gr <- GenomicRanges::GRanges(seqnames = factor("II", chroms),
-                                           ranges = IRanges::IRanges(start = c(41982,41882,41621,41521),
-                                                                     width = 1L),
-                                           strand = "-")
-  expect_identical(res$breaks_gr, my_test_min_gr)
-
-  full_min_gr <- breaks_to_granges(tx_chr = factor("II", levels = chroms),
-                                   tx_strand = factor("-", levels=c("+","-")),
-                                   tx_start = 41470, tx_end = 41982, spliced_tx_width = 351,
-                                   exons_lengths = c(212, 139), exons_starts = c(0, 373),
-                                   breakpoints = bins, opt = list(endedness = 5L))
-
-  expect_identical(full_min_gr, my_test_min_gr)
+  expect_identical(res$breaks_in_genomic, res$bins_in_genomic_coords)
 })
 
 
@@ -521,19 +446,7 @@ local({
 
   expect_identical(gr_full, my_test_bin_gr)
 
-  my_test_min_gr <- GenomicRanges::GRanges(seqnames = factor("II", chroms),
-                                           ranges = IRanges::IRanges(start = c(41471,41571,41671,41932),
-                                                                     width = 1L),
-                                           strand = "-")
-  expect_identical(res$breaks_gr, my_test_min_gr)
-
-  full_min_gr <- breaks_to_granges(tx_chr = factor("II", levels = chroms),
-                                   tx_strand = factor("-", levels=c("+","-")),
-                                   tx_start = 41470, tx_end = 41982, spliced_tx_width = 351,
-                                   exons_lengths = c(212, 139), exons_starts = c(0, 373),
-                                   breakpoints = bins, opt = list(endedness = 3L))
-
-  expect_identical(full_min_gr, my_test_min_gr)
+  expect_identical(res$breaks_in_genomic, res$bins_in_genomic_coords)
 })
 
 

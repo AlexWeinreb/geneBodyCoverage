@@ -97,19 +97,6 @@ coords_as_bin_granges <- function(tx_chr, bins, tx_strand,
 }
 
 
-#' Coordinates as minimal GRanges
-#'
-#' @param tx_chr,tx_strand Transcript genomic position
-#' @param breaks_in_genomic Breakpoints positions in genomic coordinates
-#'
-#' @return A Granges object, each range is 1 bp wide around the breakpoint
-coords_as_min_granges <- function(tx_chr, tx_strand, breaks_in_genomic){
-  GenomicRanges::GRanges(seqnames = tx_chr,
-                         ranges = IRanges::IRanges(start = breaks_in_genomic,
-                                                   width = 1L),
-                         strand = tx_strand)
-}
-
 
 #' Convert bins to a list of GRanges objects in genomic coordinates
 #'
@@ -167,12 +154,12 @@ bins_to_granges <- function(tx_chr, tx_strand, tx_start, tx_end, spliced_tx_widt
 #' @export
 #'
 #' @examples
-#' breaks_to_granges(tx_chr = "I", tx_strand = "+",
+#' breaks_to_genomic(tx_chr = "I", tx_strand = "+",
 #'   tx_start = 100, tx_end = 200, spliced_tx_width = 60,
 #'   exons_lengths = c(10,50), exons_starts = c(0,150),
 #'   breakpoints = c(0,5,15,30),
 #'   opt = list(endedness = 5L))
-breaks_to_granges <- function(tx_chr, tx_strand, tx_start, tx_end, spliced_tx_width,
+breaks_to_genomic <- function(tx_chr, tx_strand, tx_start, tx_end, spliced_tx_width,
                             exons_lengths, exons_starts,
                             breakpoints,
                             opt){
@@ -184,9 +171,7 @@ breaks_to_granges <- function(tx_chr, tx_strand, tx_start, tx_end, spliced_tx_wi
 
   breaks_in_genomic <- coords_to_genomic(tx_start, tx_end, breaks_in_unspliced, tx_strand, opt)
 
-  breaks_as_granges <- coords_as_min_granges(tx_chr, tx_strand, breaks_in_genomic)
-
-  breaks_as_granges
+  breaks_in_genomic
 }
 
 
