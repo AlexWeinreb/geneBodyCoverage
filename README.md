@@ -42,21 +42,29 @@ reads                 >>>>
 
 The table of number of reads per breakpoint is:
 
+------------------------------
   breakpoint   number of reads
 ------------ -----------------
          0                   0
+
          5                   2
+
         10                   2
+
         15                   1
+------------------------------
 
 Whereas the number of reads falling within the bins defined by the breakpoints are:
 
+----------------------------------------
   bin start     bin end  number of reads
 ----------- ----------- ----------------
         1           5                  2
-        6          10                  3
-       11          15                  1
 
+        6          10                  3
+
+       11          15                  1
+----------------------------------------
 
 
 Using the package within R, we can use two sets of functions to quantify what we wish:
