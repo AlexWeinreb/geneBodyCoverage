@@ -54,6 +54,9 @@ cat("Starting: ",date(),"\n\n")
 if(file.exists(opt$out_path) && is.null(opt$force)){
   stop("Output file already exists. Use --force to overwrite.")
 }
+if(! dir.exists(dirname(opt$out_path))){
+  stop("Path not valid: ", dirname(opt$out_path))
+}
 
 if(is.null(opt$nproc)) opt$nproc <- 1
 if(!is.numeric(opt$nproc)) stop("Error: nproc must be numeric, got ", opt$nproc)
